@@ -1,0 +1,10 @@
+[project]
+name = "analise-ecommerce"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pandas>=3.0.1",
+    "psycopg>=3.3.3",
+]
