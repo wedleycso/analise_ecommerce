@@ -12,12 +12,12 @@ def criar_tabelas():
                 CREATE TABLE IF NOT EXISTS pedidos (
                     id_pedido VARCHAR(50) PRIMARY KEY,
                     id_cliente VARCHAR(50),
-                    data_compra TIMESTAMP,
+                    data_compra TIMESTAMP
             );
                         
                 CREATE TABLE IF NOT EXISTS itens_pedidos (
                         id_item SERIAL PRIMARY KEY,
-                        id_pedido VARCHAR(50),
+                        id_pedido VARCHAR(50) REFERENCES pedidos(id_pedido),
                         id_produto VARCHAR(50),
                         quantidade INT,
                         valor DECIMAL(10,2)
