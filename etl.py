@@ -1,27 +1,39 @@
 import pandas as pd
 import psycopg
 
-# as três etapas do ETL
-#1. Extrair os dados do arquivo CSV
-df_pedidos = pd.read_csv('olist_orders_dataset.csv')
+#Aqui ocorrerá a extração dos dados CSV
+df_pedidos = pd.read_csv('base_de_dados/olist_orders_dataset.csv')
 
-#2. Transformar os dados (aqui eu ajusto o formato da data para o formato correto do PostgreSQL)
-df_pedidos['data_compra '] = pd.to_datetime(df_pedidos['data_compra'])
+#================================================
 
-#3. Agora é feita a carga de dados para o banco de dados PostgreSQL
-DB_CONFIG = "dbname=ecommerce user=postgres password=admin"
+#Aqui será realizada a transformação dos dados
 
-#essa instrução sql serve para inserir os dados na tebela com espaços reservados (%s) contra injeção de SQL
-sql_insert = """
-    INSERT INTO pedidos (id_pedido, id_cliente, data_compra)
-    VALUES (%s, %s, %s)
-"""
+#Convertendo a string de data para o formato TIMESTAMP do PostgreSQL
+df_pedidos['order_purchase_timestamp'] = pd.to_datetime(df_pedidos['order_purchase_timestamp'])
 
-#aqui converto as colunas são convertidas para uma lista
-registros_para_inserir = df_pedidos[['id_pedido', 'id_cliente', 'data_compra']].values.tolist()
+#Selecionado as colunas que serão inseridas 
+df_selecionado = df_pedidos[['order_id', 'customer_id', 'order_status', 'order_purchase_timestamp']]
 
-#aqui abre a  ligação com db e executa 
+#Removendo linhas com valores nulos
+df_limpo = df_selecionado.dropna()
+
+#conversão do DF para uma lista de tuplas (padrão do psycopg)
+registros_para_inserir = [tuple(x) for x in df_limpo.to_numpy()] 
+
+#================================================
+
+#Aqui ocorrerá a carga dos dados no banco de dados
+
+DB_CONFIG = 'dbname=ecommerce user=postgres password=rootadmin'
+
+sql_insert = '''
+    INSERT INTO olist_orders (order_id, customer_id, order_status, order_purchase_timestamp)
+    VALUES (%s, %s, %s, %s) -- Garante que os dados sejam inseridos corretamente
+    ON CONFLICT (order_id) DO NOTHING; -- Evita duplicidade de registros
+'''
+
+print('Inserindo registros no banco de dados...')
 with psycopg.connect(DB_CONFIG) as conn:
     with conn.cursor() as cur:
         cur.executemany(sql_insert, registros_para_inserir)
-        print('Dados inseridos com sucesso!')
+        print('Dados inseridos com sucesso!!!')

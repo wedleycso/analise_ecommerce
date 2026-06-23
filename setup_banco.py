@@ -1,29 +1,33 @@
-import psycopg
+import psycopg2
 
-# aqui é feita a configuração do banco de dados local, nesse caso sera o PostegreSQL
-DB_CONFIG = "dbname=ecommerce user=postgres password=admin"
+#config do banco de dados
+DB_CONFIG = 'dbname=ecommerce user=postgres password=rootadmin'
 
 def criar_tabelas():
-    # 'with' serve para abrir a conexão com a base de dados e garante que seja fechada ao final
-    with psycopg.connect(DB_CONFIG) as conn:
+    # Aqui o 'with' é usado para garantir que a conexão encerre corretamente.
+    with psycopg2.connect(DB_CONFIG) as conn:
         with conn.cursor() as cur:
-            #SQL para criar as tabelas
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS pedidos (
-                    id_pedido VARCHAR(50) PRIMARY KEY,
-                    id_cliente VARCHAR(50),
-                    data_compra TIMESTAMP
-            );
-                        
-                CREATE TABLE IF NOT EXISTS itens_pedidos (
-                        id_item SERIAL PRIMARY KEY,
-                        id_pedido VARCHAR(50) REFERENCES pedidos(id_pedido),
-                        id_produto VARCHAR(50),
-                        quantidade INT,
-                        valor DECIMAL(10,2)
-            );
-            """)
+
+            #o cur.execute() é usado para executar os comandos SQL
+            cur.execute('''
+                CREATE TEBLE IF NOT EXISTS olist_orders (
+                    order_id VARCHAR(50) PRIMARU KEY,
+                    customer_id VARCHAR(50),
+                    order_status VARCHAR(50),
+                    order_purchase_timestamp TIMESTAMP
+                );
+
+                CREATE TABLE IF NOT EXISTS olist_order_itmes (
+                    order_id VARCHAR(50),
+                    product_id VARCHAR(50),
+                    order_item_id INT, -- Aqui vai pegar o id do item no mesmo pedido
+                    price DECIMAL(10,2),
+                    freight_value DECIMAL(10,2),
+                    PRIMARY KEY (order_id, product_id, order_item_id) -- chave composta para garantir que não haja duplicidade de itens
+                    FOREIGN KEY (order_id) REFRENCES olist_orders(order_id) ON DELETE CASCADE
+                );                
+            ''')
             print('Tabelas criadas com sucesso!')
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     criar_tabelas()
