@@ -24,7 +24,7 @@ registros_para_inserir = [tuple(x) for x in df_limpo.to_numpy()]
 
 #Aqui ocorrerá a carga dos dados no banco de dados
 
-DB_CONFIG = 'dbname=ecommerce user=postgres password=rootadmin'
+DB_CONFIG = 'host=127.0.0.1 dbname=ecommerce user=olist_user password=admin'
 
 sql_insert = '''
     INSERT INTO olist_orders (order_id, customer_id, order_status, order_purchase_timestamp)
