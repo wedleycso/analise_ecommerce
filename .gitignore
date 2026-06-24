@@ -205,3 +205,15 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+
+# ==========================================
+# Dados Locais do Projeto (Olist Dataset)
+# ==========================================
+# Ignora todos os arquivos CSV pesados dentro da pasta de dados
+base_de_dados/*.csv
+base_de_dados/*.zip
+base_de_dados/*.xlsx
+
+# Configurações locais do seu VS Code
+.vscode/
