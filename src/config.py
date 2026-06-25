@@ -1,7 +1,7 @@
 import os
 
 #Passando a configuração do banco para esse arquivo
-DB_CONFIG = 'host=127.0.0.1 dbname=ecommerce user=olist_user password=admin'
+DB_CONFIG = 'host=127.0.0.1 port=5432 dbname=ecommerce user=olist_user password=admin'
 
 #Caminhos para os arquivos CSV
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
