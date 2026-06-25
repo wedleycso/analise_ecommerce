@@ -24,18 +24,20 @@ O pipeline foi desenvolvido seguindo boas práticas de Engenharia de Dados, incl
 * ✅ **Performance:** Inserções em lote (*Bulk Insert*) utilizando `executemany()`
 * ✅ **Idempotência:** Tratamento de duplicidades com cláusulas estruturadas
 * ✅ **Integridade Referencial:** Relacionamentos protegidos por chaves estrangeiras
+* ✅ **Containerização:** Ambiente de banco de dados isolado via Docker Compose
 
 ---
 
 # 🛠️ Stack Tecnológica
 
-| Tecnologia    | Finalidade                                |
-| ------------- | ----------------------------------------- |
-| Python 3.14+  | Desenvolvimento do pipeline               |
-| Pandas        | Extração e transformação dos dados        |
-| Psycopg 3     | Comunicação com PostgreSQL                |
-| PostgreSQL 18 | Armazenamento dos dados                   |
-| uv            | Gerenciamento de dependências e ambientes |
+| Tecnologia     | Finalidade                                |
+| -------------- | ----------------------------------------- |
+| Python 3.14+   | Desenvolvimento do pipeline               |
+| Pandas         | Extração e transformação dos dados        |
+| Psycopg 3      | Comunicação com PostgreSQL                |
+| PostgreSQL 18  | Armazenamento dos dados                   |
+| Docker Compose | Infraestrutura do banco de dados          |
+| uv             | Gerenciamento de dependências e ambientes |
 
 ---
 
@@ -55,6 +57,7 @@ analise_ecommerce/
 │   ├── database.py             # Criação e gerenciamento das tabelas
 │   └── pipeline.py             # Funções de extração, transformação e carga
 │
+├── docker-compose.yml          # Infraestrutura PostgreSQL
 ├── .gitignore
 ├── .python-version
 ├── pyproject.toml
@@ -80,10 +83,10 @@ analise_ecommerce/
  [ Carga em Lote ] (Psycopg 3 → Bulk Insert)
         │
         ▼
- [ PostgreSQL ] (Tabelas Relacionais)
+ [ PostgreSQL Container ] (Docker Compose)
 ```
 
-A arquitetura foi projetada para utilizar um usuário dedicado ao projeto, evitando o uso direto do superusuário `postgres`, aumentando a segurança e facilitando a administração do ambiente.
+A arquitetura foi projetada para utilizar um usuário dedicado ao projeto e um ambiente isolado via Docker, garantindo consistência entre desenvolvimento, testes e futuras implantações.
 
 ---
 
@@ -91,7 +94,7 @@ A arquitetura foi projetada para utilizar um usuário dedicado ao projeto, evita
 
 Antes de iniciar, certifique-se de possuir:
 
-* PostgreSQL 15 ou superior
+* Docker e Docker Compose instalados
 * Python 3.14+
 * uv instalado
 
@@ -111,33 +114,44 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 
 ---
 
-# 🗄️ Configuração do Banco de Dados
+# 🗄️ Configuração do Banco de Dados (Docker)
 
-## 1. Criar o banco
+O projeto utiliza o **Docker Compose** para isolar o ambiente de dados, garantindo que o PostgreSQL 18 execute de forma idêntica em qualquer máquina.
 
-```bash
-sudo -u postgres createdb ecommerce
-```
+## 1. Subir a Infraestrutura
 
-## 2. Criar usuário dedicado
+Certifique-se de que o Docker está instalado e ativo na sua máquina.
 
-Defina uma senha durante a criação.
+Na raiz do projeto, execute:
 
 ```bash
-sudo -u postgres createuser olist_user --pwprompt
+docker compose up -d
 ```
 
-Sugestão para ambiente local:
+O Docker criará automaticamente:
+
+* Banco de dados `ecommerce`
+* Usuário `olist_user`
+* Senha padrão `admin`
+* Porta `5432` exposta localmente
+
+---
+
+## 2. Verificar o Status do Container
+
+Para garantir que o banco de dados foi inicializado corretamente:
+
+```bash
+docker ps
+```
+
+Você deverá visualizar um container semelhante a:
 
 ```text
-admin
+olist_postgres_container
 ```
 
-## 3. Conceder permissões
-
-```bash
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ecommerce TO olist_user;"
-```
+com status **Up**.
 
 ---
 
@@ -167,18 +181,19 @@ O `uv` utilizará automaticamente os arquivos `.python-version` e `pyproject.tom
 
 # 🚀 Executando o Projeto
 
-O pipeline possui um único ponto de entrada responsável por:
-
-* Criar ou validar a estrutura do banco de dados
-* Executar a carga da tabela de pedidos
-* Executar a carga da tabela de itens dos pedidos
-* Garantir a sequência correta das operações
-
-Execute:
+Com o container PostgreSQL ativo, execute o pipeline:
 
 ```bash
 uv run run_pipeline.py
 ```
+
+O orquestrador central será responsável por:
+
+* Criar ou validar a estrutura do banco de dados
+* Executar a carga da tabela `olist_orders`
+* Executar a carga da tabela `olist_order_items`
+* Garantir a sequência correta das operações
+* Inserir os dados diretamente no PostgreSQL executando dentro do container Docker
 
 ---
 
@@ -217,7 +232,6 @@ Características da modelagem:
 
 # 📈 Possíveis Evoluções
 
-* [ ] Docker Compose para PostgreSQL
 * [ ] Apache Airflow para orquestração
 * [ ] Data Warehouse dimensional
 * [ ] Dashboards com Power BI
@@ -227,6 +241,7 @@ Características da modelagem:
 * [ ] Pipeline CI/CD
 * [ ] Camada de validação de qualidade dos dados (Data Quality)
 * [ ] Monitoramento e observabilidade do pipeline
+* [ ] Data Lake para armazenamento bruto dos dados
 
 ---
 
@@ -238,10 +253,27 @@ Este projeto foi desenvolvido com foco no aprendizado de conceitos fundamentais 
 * ETL
 * Banco de Dados Relacional
 * PostgreSQL
+* Docker
 * Python para Dados
 * Modelagem de Dados
 * Integração entre aplicações e banco de dados
 * Arquitetura de pipelines modulares
+
+---
+
+# 📌 Versionamento
+
+O projeto segue os princípios de **Versionamento Semântico (SemVer)**:
+
+```text
+MAJOR.MINOR.PATCH
+```
+
+Versão atual:
+
+```text
+v0.3.1
+```
 
 ---
 
